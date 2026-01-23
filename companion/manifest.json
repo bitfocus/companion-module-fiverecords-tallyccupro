@@ -1,6 +1,6 @@
 {
-	"id": "tallyccu-pro",
-	"name": "TallyCCU Pro",
+	"id": "fiverecords-tallyccu-pro",
+	"name": "Fiverecords TallyCCU Pro",
 	"shortname": "TallyCCU",
 	"description": "Blackmagic camera control via TallyCCU Pro with vMix tally integration",
 	"version": "3.0.0",
