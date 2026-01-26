@@ -6,7 +6,7 @@
 	"version": "3.0.0",
 	"license": "MIT",
 	"repository": "git+https://github.com/fiverecords/companion-module-tallyccu-pro.git",
-	"bugs": "https://github.com/fiverecords/companion-module-tallyccu-pro/issues",
+	"bugs": "https://github.com/bitfocus/companion-module-fiverecords-tallyccupro/issues",
 	"maintainers": [
 		{
 			"name": "Joaquin Villodre",
