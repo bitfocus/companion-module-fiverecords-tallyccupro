@@ -17,7 +17,7 @@
 	},
 	"dependencies": {
 		"@companion-module/base": "~1.14.1",
-		"axios": "^1.6.0"
+		"axios": "^1.13.5"
 	},
 	"devDependencies": {
 		"@companion-module/tools": "^2.6.1",
