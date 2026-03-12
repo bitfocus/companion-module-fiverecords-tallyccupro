@@ -3,7 +3,7 @@
 	"name": "Fiverecords TallyCCU Pro",
 	"shortname": "TallyCCU",
 	"description": "Blackmagic camera control via TallyCCU Pro with vMix tally integration",
-	"version": "V3.0.1",
+	"version": "3.0.2",
 	"license": "MIT",
 	"repository": "git+https://github.com/bitfocus/companion-module-fiverecords-tallyccupro.git",
 	"bugs": "https://github.com/bitfocus/companion-module-fiverecords-tallyccupro/issues",
