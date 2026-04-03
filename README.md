@@ -1,18 +1,27 @@
-# companion-module-tallyccu-pro
+# companion-module-fiverecords-tallyccupro
 
-Bitfocus Companion module for TallyCCU Pro - Control Blackmagic Design cameras via SDI with vMix tally integration.
-
-See [HELP.md](./companion/HELP.md) and [LICENSE](./LICENSE)
-
-## Overview
-
-This module allows you to control Blackmagic Design cameras through [TallyCCU Pro](https://github.com/fiverecords/TallyCCUPro), an open-source Arduino-based CCU system.
+Companion module for controlling Blackmagic Design cameras via [TallyCCU Pro](https://github.com/fiverecords/TallyCCUPro), an open-source Arduino-based CCU system with vMix tally integration.
 
 ## Features
 
-- Full CCU control (iris, focus, zoom, white balance, ISO, shutter, ND filters)
-- Color correction (lift, gamma, gain, offset)
-- PTZ support (pan/tilt velocity, memory presets)
-- Preset management (save/load configurations)
+- Full CCU control of up to 8 Blackmagic cameras (lens, video, audio, color correction, display, tally, PTZ)
 - Real-time bidirectional sync via TCP
+- Preset management (save/load camera configurations)
 - vMix tally integration
+- Feedbacks for button style changes based on camera state
+- Variables for dynamic button text
+
+## Getting Started
+
+See [HELP](companion/HELP.md) for configuration and usage details.
+
+## Development
+
+```
+yarn install
+yarn build
+```
+
+## Hardware Project
+
+- [TallyCCU Pro on GitHub](https://github.com/fiverecords/TallyCCUPro)

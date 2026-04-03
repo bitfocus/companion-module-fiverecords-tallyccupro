@@ -1,11 +1,12 @@
-// TallyCCU Pro - Companion Module V3.0
+// TallyCCU Pro - Companion Module
 // Blackmagic Design camera control via TallyCCU Pro
 // https://github.com/fiverecords/TallyCCUPro
 
 const { InstanceBase, Regex, runEntrypoint, InstanceStatus } = require('@companion-module/base')
 const UpgradeScripts = require('./upgrades')
-const UpdateActions = require('./actions')
-const Variables = require('./variables')
+const UpdateActions = require('./actions/index')
+const UpdateFeedbacks = require('./feedbacks')
+const UpdateVariableDefinitions = require('./variables')
 const Connection = require('./connection')
 const Tcp = require('./tcp')
 const Params = require('./params')
@@ -102,7 +103,7 @@ class TallyCcuProInstance extends InstanceBase {
 	// ========================================================================
 
 	async init(config) {
-		this.log('info', 'Initializing TallyCCU Pro module v3.0')
+		this.log('info', 'Initializing TallyCCU Pro module')
 
 		if (config) {
 			this.config = config
@@ -113,10 +114,13 @@ class TallyCcuProInstance extends InstanceBase {
 		Params.initParamDefaults(this)
 
 		// Initialize variable definitions
-		Variables.initVariableDefinitions(this)
+		this.updateVariableDefinitions()
 
 		// Configure available actions
-		UpdateActions(this)
+		this.updateActions()
+
+		// Configure feedbacks
+		this.updateFeedbacks()
 
 		// Check initial connection
 		if (this.config.host) {
@@ -134,8 +138,9 @@ class TallyCcuProInstance extends InstanceBase {
 		const oldHost = this.config.host
 		this.config = config
 
-		// Update actions
-		UpdateActions(this)
+		// Update actions and feedbacks
+		this.updateActions()
+		this.updateFeedbacks()
 
 		// If IP changed, restart monitoring
 		if (this.config.host !== oldHost) {
@@ -161,6 +166,22 @@ class TallyCcuProInstance extends InstanceBase {
 	}
 
 	// ========================================================================
+	// UPDATE METHODS (template pattern)
+	// ========================================================================
+
+	updateActions() {
+		UpdateActions(this)
+	}
+
+	updateFeedbacks() {
+		UpdateFeedbacks(this)
+	}
+
+	updateVariableDefinitions() {
+		UpdateVariableDefinitions(this)
+	}
+
+	// ========================================================================
 	// WRAPPER METHODS (called from actions and other modules)
 	// ========================================================================
 
@@ -181,10 +202,12 @@ class TallyCcuProInstance extends InstanceBase {
 	}
 
 	updateVariablesFromParams(cameraId, paramKey, value) {
+		const Variables = require('./variables')
 		Variables.updateVariablesFromParams(this, cameraId, paramKey, value)
 	}
 
 	updatePresetNames(presets) {
+		const Variables = require('./variables')
 		Variables.updatePresetNames(this, presets)
 	}
 

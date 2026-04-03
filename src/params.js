@@ -1,7 +1,6 @@
 // TallyCCU Pro - Parameter Management
 // Parameter defaults, storage and HTTP communication
 
-const axios = require('axios')
 const { InstanceStatus } = require('@companion-module/base')
 
 module.exports = {
@@ -150,14 +149,15 @@ module.exports = {
 
 		this.storeParamValue(self, paramKey, val, cameraId)
 
-		// Update variables
+		// Update variables and feedbacks
 		self.updateVariablesFromParams(cameraId, paramKey, val)
+		self.checkFeedbacks()
 
 		const url = 'http://' + self.config.host + '/?cameraId=' + cameraId + '&' + paramKey + '=' + encodeURIComponent(val)
 		self.log('debug', 'Sending GET -> ' + url)
 
 		try {
-			const res = await axios.get(url, { timeout: 3000 })
+			const res = await fetch(url, { signal: AbortSignal.timeout(3000) })
 			self.log('debug', 'Response: ' + res.status + ' ' + res.statusText)
 			self.connectionStatus = 'ok'
 			self.reconnectAttempts = 0
@@ -174,7 +174,7 @@ module.exports = {
 		state.cameraId = cameraId
 
 		for (const key in self.paramDefaults) {
-			if (self.paramDefaults.hasOwnProperty(key)) {
+			if (Object.prototype.hasOwnProperty.call(self.paramDefaults, key)) {
 				const defaultValue = self.paramDefaults[key]
 				if (state[key] === undefined) {
 					state[key] = defaultValue
@@ -194,7 +194,7 @@ module.exports = {
 		}
 
 		for (const paramKey in parameters) {
-			if (!parameters.hasOwnProperty(paramKey)) continue
+			if (!Object.prototype.hasOwnProperty.call(parameters, paramKey)) continue
 			const value = parameters[paramKey]
 
 			if (paramKey === 'name') continue
@@ -235,5 +235,6 @@ module.exports = {
 		}
 
 		self.log('info', 'Internal values updated for camera ' + cameraId)
+		self.checkFeedbacks()
 	},
 }

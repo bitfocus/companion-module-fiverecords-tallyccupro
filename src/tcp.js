@@ -53,11 +53,17 @@ module.exports = {
 		self.tcpSocket.on('error', (err) => {
 			self.log('debug', `TCP error: ${err.message}`)
 			self.tcpConnected = false
+			// Destroy the socket to prevent zombie listeners and memory leaks
+			if (self.tcpSocket) {
+				self.tcpSocket.destroy()
+			}
 		})
 
 		self.tcpSocket.on('timeout', () => {
 			self.log('warn', 'TCP timeout')
-			self.tcpSocket.destroy()
+			if (self.tcpSocket) {
+				self.tcpSocket.destroy()
+			}
 		})
 
 		self.tcpSocket.connect(self.ccuBroadcastPort, self.config.host)
@@ -181,6 +187,7 @@ module.exports = {
 		self.cameraStates[cameraId][paramKey] = parsedValue
 
 		self.updateVariablesFromParams(cameraId, paramKey, parsedValue)
+		self.checkFeedbacks()
 	},
 
 	handlePresetChange(self, cameraId, presetId, presetName) {
@@ -196,6 +203,7 @@ module.exports = {
 		}
 
 		self.setVariableValues(variables)
+		self.checkFeedbacks()
 	},
 
 	handlePresetSaved(self, cameraId, presetId, presetName) {
@@ -216,7 +224,7 @@ module.exports = {
 		self.log('debug', `Variable updated: cam${cameraId}_preset${presetId}_name = "${presetName}"`)
 	},
 
-	// Send all cached camera state back to Arduino for SSE sync
+	// Send all cached camera state back to Arduino for sync
 	sendCachedState(self) {
 		if (!self.tcpSocket || !self.tcpConnected) {
 			self.log('warn', 'Cannot send cached state - TCP not connected')
@@ -236,14 +244,13 @@ module.exports = {
 				} else {
 					valueStr = String(value)
 				}
-				
-				// Send as CCU message back to Arduino
+
 				const msg = `CCUSYNC ${cameraId} ${paramKey} ${valueStr}\r\n`
 				self.tcpSocket.write(msg)
 				paramCount++
 			}
 		}
-		
+
 		self.log('info', `Sent ${paramCount} cached parameters to Arduino`)
 	},
 }

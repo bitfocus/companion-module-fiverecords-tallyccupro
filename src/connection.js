@@ -1,7 +1,6 @@
 // TallyCCU Pro - Connection Monitoring
 // HTTP connection monitoring and status management
 
-const axios = require('axios')
 const { InstanceStatus } = require('@companion-module/base')
 
 module.exports = {
@@ -23,28 +22,27 @@ module.exports = {
 
 		try {
 			const url = 'http://' + self.config.host + '/?listPresets'
-			const response = await axios.get(url, { timeout: 3000 })
+			const response = await fetch(url, { signal: AbortSignal.timeout(3000) })
+			const responseText = await response.text()
 
 			let validResponse = false
 			let presetsData = null
 
-			if (typeof response.data === 'object') {
-				validResponse = response.data && response.data.presets !== undefined
-				if (validResponse) presetsData = response.data
-			} else if (typeof response.data === 'string') {
-				validResponse =
-					response.data.includes('presets') ||
-					response.data.includes('TallyCCU') ||
-					(response.data.includes('{') && response.data.includes('}'))
-
-				if (validResponse) {
-					const jsonMatch = response.data.match(/\{.*\}/s)
-					if (jsonMatch) {
-						try {
-							presetsData = JSON.parse(jsonMatch[0])
-						} catch (e) {
-							// No problem if parsing fails
+			if (
+				responseText.includes('presets') ||
+				responseText.includes('TallyCCU') ||
+				(responseText.includes('{') && responseText.includes('}'))
+			) {
+				validResponse = true
+				const jsonMatch = responseText.match(/\{.*\}/s)
+				if (jsonMatch) {
+					try {
+						presetsData = JSON.parse(jsonMatch[0])
+						if (presetsData.presets === undefined) {
+							validResponse = false
 						}
+					} catch (e) {
+						// JSON parse failed, but response was valid text
 					}
 				}
 			}
@@ -54,6 +52,7 @@ module.exports = {
 				self.reconnectAttempts = 0
 				self.updateStatus(InstanceStatus.Ok, 'Connected to TallyCCU Pro')
 				self.log('debug', 'Connection verified successfully')
+				self.checkFeedbacks()
 
 				// Load preset names if available
 				if (presetsData && presetsData.presets && Array.isArray(presetsData.presets)) {
@@ -74,17 +73,17 @@ module.exports = {
 			self.reconnectAttempts++
 
 			let errorMsg = 'Connection error'
-			if (error.code === 'ECONNREFUSED') {
+			if (error.cause && error.cause.code === 'ECONNREFUSED') {
 				errorMsg = 'Connection refused'
-			} else if (error.code === 'ETIMEDOUT' || error.code === 'ECONNABORTED') {
+			} else if (error.name === 'TimeoutError' || error.name === 'AbortError') {
 				errorMsg = 'Connection timeout'
-			} else if (error.code === 'EHOSTUNREACH') {
+			} else if (error.cause && error.cause.code === 'EHOSTUNREACH') {
 				errorMsg = 'Host unreachable'
 			}
 
 			self.updateStatus(
 				InstanceStatus.ConnectionFailure,
-				errorMsg + ' (' + self.reconnectAttempts + '/' + self.maxReconnectAttempts + ')'
+				errorMsg + ' (' + self.reconnectAttempts + '/' + self.maxReconnectAttempts + ')',
 			)
 			self.log('error', 'Error checking connection: ' + error.message)
 			return false
@@ -98,24 +97,37 @@ module.exports = {
 			clearInterval(self.connectionTimer)
 		}
 
-		// Initial check
-		this.checkConnection(self).then((connected) => {
-			if (connected) {
-				self.log('info', 'Initial connection established successfully')
-			} else {
-				self.log('warn', 'Could not establish initial connection')
-			}
-		})
+		// Initial check with proper error handling
+		this.checkConnection(self).then(
+			(connected) => {
+				if (connected) {
+					self.log('info', 'Initial connection established successfully')
+				} else {
+					self.log('warn', 'Could not establish initial connection')
+				}
+			},
+			(err) => {
+				self.log('error', 'Unexpected error during initial connection check: ' + err.message)
+			},
+		)
 
 		// Periodic check
 		self.connectionTimer = setInterval(async () => {
-			const connected = await this.checkConnection(self)
+			try {
+				const connected = await this.checkConnection(self)
 
-			if (!connected && self.reconnectAttempts >= self.maxReconnectAttempts) {
-				clearInterval(self.connectionTimer)
-				self.log('warn', 'Multiple connection failures, increasing check interval')
-				self.pingInterval = 60000
-				self.connectionTimer = setInterval(() => this.checkConnection(self), self.pingInterval)
+				if (!connected && self.reconnectAttempts >= self.maxReconnectAttempts) {
+					clearInterval(self.connectionTimer)
+					self.log('warn', 'Multiple connection failures, increasing check interval')
+					self.pingInterval = 60000
+					self.connectionTimer = setInterval(() => {
+						this.checkConnection(self).catch((err) => {
+							self.log('error', 'Connection check error: ' + err.message)
+						})
+					}, self.pingInterval)
+				}
+			} catch (err) {
+				self.log('error', 'Connection monitor error: ' + err.message)
 			}
 		}, self.pingInterval)
 	},

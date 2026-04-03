@@ -14,14 +14,15 @@ This Companion module connects to the TallyCCU Pro Arduino device over your loca
 
 ## Configuration
 
-| Setting | Description |
-|---------|-------------|
-| **IP Address** | The IP address of your TallyCCU Pro device (e.g., 192.168.1.100) |
-| **Default Camera** | Camera ID (1-8) used when no specific camera is selected |
+| Setting            | Description                                                      |
+| ------------------ | ---------------------------------------------------------------- |
+| **IP Address**     | The IP address of your TallyCCU Pro device (e.g., 192.168.1.100) |
+| **Default Camera** | Camera ID (1-8) used when no specific camera is selected         |
 
 ## Available Actions
 
 ### Camera Parameters
+
 Full control of all Blackmagic CCU parameters organized by category:
 
 - **Lens**: Focus, Aperture, Zoom, OIS
@@ -33,47 +34,61 @@ Full control of all Blackmagic CCU parameters organized by category:
 - **PTZ**: Pan/Tilt velocity, Memory presets (for supported cameras)
 
 Each parameter has actions for:
+
 - **Set value**: Set to a specific value
 - **Increase/Decrease**: Step up or down
 - **Reset**: Return to default value
 
 ### Presets
+
 - **Load Preset**: Apply a saved preset to a camera
 - **Save Preset**: Save current camera settings as a preset
 - **List Presets**: Log all available presets to the console
 
 ### Connection Management
+
 - **Change Active Camera**: Switch which camera receives commands
 - **Retry Connection**: Force reconnection to TallyCCU Pro
 - **vMix Connect**: Enable/disable vMix tally integration
 
+## Feedbacks
+
+The module provides feedbacks for button style changes:
+
+| Feedback                      | Description                               |
+| ----------------------------- | ----------------------------------------- |
+| **Connection Status**         | Green when connected to TallyCCU Pro      |
+| **Active Preset**             | Highlights when specific preset is active |
+| **OIS Enabled**               | Shows OIS state                           |
+| **Phantom Power**             | Shows phantom power state                 |
+| **Dynamic Range Mode**        | Matches specific dynamic range mode       |
+| **Parameter Value Compare**   | Match any parameter to a specific value   |
+| **Parameter Above Threshold** | Trigger when parameter exceeds threshold  |
+
 ## Variables
 
-The module provides variables for integration with feedbacks and button text:
+The module provides variables for use in button text:
 
-| Variable | Description |
-|----------|-------------|
-| `$(tallyccu:active_camera)` | Currently selected camera ID |
-| `$(tallyccu:connection_status)` | Connection state (ok/error/connecting) |
-| `$(tallyccu:cam_X_preset_Y_name)` | Name of preset Y for camera X |
+| Variable                      | Description                        |
+| ----------------------------- | ---------------------------------- |
+| `cam[1-8]_active_preset_name` | Active preset name for each camera |
+| `cam[1-8]_active_preset_id`   | Active preset ID for each camera   |
+| `cam[1-8]_preset[0-4]_name`   | Name of each preset slot           |
+| `cam[1-8]_param_[key]`        | Current value of any parameter     |
 
 ## Real-time Sync
 
-The module maintains a persistent TCP connection (port 8098) with TallyCCU Pro for real-time bidirectional synchronization. Changes made via the web interface or other clients are automatically reflected in Companion variables.
+The module maintains a persistent TCP connection (port 8098) with TallyCCU Pro for real-time bidirectional synchronization. Changes made via the web interface or other clients are automatically reflected in Companion variables and feedbacks.
 
 ## Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
-| "Connection error" | Check IP address and network connectivity |
-| Parameters not updating | Verify TallyCCU Pro firmware is V3.0+ |
-| Tally not working | Check vMix IP configuration in TallyCCU Pro web interface |
+| Issue                   | Solution                                                  |
+| ----------------------- | --------------------------------------------------------- |
+| "Connection error"      | Check IP address and network connectivity                 |
+| Parameters not updating | Verify TallyCCU Pro firmware is V3.0+                     |
+| Tally not working       | Check vMix IP configuration in TallyCCU Pro web interface |
 
 ## More Information
 
 - **GitHub**: https://github.com/fiverecords/TallyCCUPro
 - **Support**: fiverecords@gmail.com
-
-## License
-
-GPL-3.0 - This module is open source and free to use and modify.
